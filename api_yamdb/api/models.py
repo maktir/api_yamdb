@@ -3,7 +3,7 @@ from django.db import models
 
 
 class Review(models.Model):
-    text = models.TextField()
+    text = models.CharField()
     pub_date = models.DateTimeField(
         'Дата отзыва', auto_now_add=True)
     author = models.ForeignKey(
@@ -22,7 +22,7 @@ class Comment(models.Model):
                                related_name='comments')
     review = models.ForeignKey(Review, on_delete=models.CASCADE,
                                related_name='comments')
-    text = models.TextField()
+    text = models.CharField()
     pub_date = models.DateTimeField(
         'Дата комментария', auto_now_add=True,)
 
