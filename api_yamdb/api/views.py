@@ -1,12 +1,13 @@
+
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, filters, mixins, permissions
 from rest_framework.permissions import (SAFE_METHODS, BasePermission,
                                         IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-
-from .models import Comment, Review
-from .serializers import CommentSerializer, ReviewSerializer
+from .permissions import IsAuthorOrReadOnly
+from .models import Comment, Review, Title, Genre, Category
+from .serializers import CommentSerializer, ReviewSerializer, TitleSerializer, GenreSerializer, CategorySerializer
 
 
 class IsAuthorOrReadOnly(BasePermission):
@@ -61,3 +62,21 @@ class CommentViewSet(viewsets.ModelViewSet):
         else:
             review.comments.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ListCreateMixin(mixins.ListModelMixin,
+                      mixins.CreateModelMixin,
+                      viewsets.GenericViewSet):
+    pass
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    pass
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    pass
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    pass
