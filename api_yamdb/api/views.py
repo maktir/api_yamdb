@@ -71,12 +71,29 @@ class ListCreateMixin(mixins.ListModelMixin,
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['category', 'genre', 'year', 'name']
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 
 class GenreViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
+
+    def perform_create(self, serializer):
+        serializer.save()

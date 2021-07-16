@@ -30,11 +30,13 @@ router_api.register(
 )
 
 urlpatterns = [
+
     path('', include(router_api.urls)),
     path('v1/', include(router_api.urls)),
 
 urlpatterns += [
     path('token/', TokenObtainPairView.as_view(),
+
          name='token_obtain_pair'),
     path('v1/token/refresh/', TokenRefreshView.as_view(),
          name='token_refresh'),
