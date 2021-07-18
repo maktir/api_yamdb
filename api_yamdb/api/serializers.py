@@ -1,6 +1,36 @@
 from rest_framework import serializers
-
+from .generators import create_confirmation_code
 from .models import Comment, Review, Genre, Category, Title
+from users.models import User
+
+
+class EmailCodeSendSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True,
+                                     required=False)
+
+    class Meta:
+        model = User
+        fields = ('email', 'password',)
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            email=validated_data['email'],
+            username=validated_data['email'],
+            password=create_confirmation_code()
+        )
+        #user.set_password(create_confirmation_code())
+        user.save()
+        return user
+
+
+class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
+    username = serializers.CharField(required=True)
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'username',
+                  'bio', 'email', 'role',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -25,14 +55,12 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Genre
         fields = '__all__'
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
         fields = '__all__'
@@ -54,4 +82,3 @@ class TitleSerializer(serializers.ModelSerializer):
             'category',
             'genre'
         )
-

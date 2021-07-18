@@ -1,43 +1,36 @@
 from django.urls import include, path
-from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from rest_framework import routers
 
-from .views import CommentViewSet, ReviewViewSet, GenreViewSet, CategoryViewSet, TitleViewSet
 
-router_api = DefaultRouter()
+from .views import (CommentViewSet, ReviewViewSet,
+                    GenreViewSet, CategoryViewSet,
+                    TitleViewSet, EmailCodeSendView,
+                    UserViewSet, email_token_obtain_view)
 
-router_api.register('titles/(?P<title_id>[0-9]+)/reviews)',
+router_api = routers.DefaultRouter()
+router_api.register(r'users', UserViewSet, basename='users')
+router_api.register(r'titles/(?P<title_id>\d+)/reviews',
                     ReviewViewSet, basename='reviews')
-router_api.register('titles/(?P<title_id>[0-9]+)/reviews/(?P<review_id>[0-9]+)/comments',
+router_api.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
                     CommentViewSet, basename='comments')
 router_api.register(
-    'titles',
+    r'titles',
     TitleViewSet,
     basename='titles'
 )
 router_api.register(
-    'genre',
+    r'genre',
     GenreViewSet,
     basename='follow'
 )
 router_api.register(
-    'category',
+    r'category',
     CategoryViewSet,
     basename='group'
 )
 
 urlpatterns = [
-
-    path('', include(router_api.urls)),
     path('v1/', include(router_api.urls)),
-
-urlpatterns += [
-    path('token/', TokenObtainPairView.as_view(),
-
-         name='token_obtain_pair'),
-    path('v1/token/refresh/', TokenRefreshView.as_view(),
-         name='token_refresh'),
+    path('v1/auth/email/', EmailCodeSendView.as_view(), name='email_code'),
+    path('v1/auth/token/', email_token_obtain_view, name='get_token'),
 ]

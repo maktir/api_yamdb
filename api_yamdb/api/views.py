@@ -1,18 +1,85 @@
-
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets, filters, mixins, permissions
-from rest_framework.permissions import (SAFE_METHODS, BasePermission,
-                                        IsAuthenticatedOrReadOnly, IsAdminUser)
+from rest_framework import status, viewsets, filters, mixins
+from rest_framework.decorators import api_view, action
+from rest_framework.permissions import (IsAdminUser,
+                                        IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from .permissions import IsAuthorOrReadOnly
-from .models import Comment, Review, Title, Genre, Category
-from .serializers import CommentSerializer, ReviewSerializer, TitleSerializer, GenreSerializer, CategorySerializer
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import SlidingToken
+from users.models import User
+
+from .models import Review, Title, Genre, Category
+from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
+from .serializers import (
+    EmailCodeSendSerializer,
+    UserSerializer,
+    CommentSerializer,
+    ReviewSerializer,
+    TitleSerializer,
+    GenreSerializer,
+    CategorySerializer
+)
 
 
-class IsAuthorOrReadOnly(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return (obj.author == request.user
-                or request.method in SAFE_METHODS)
+class ListCreateMixin(mixins.ListModelMixin,
+                      mixins.CreateModelMixin,
+                      viewsets.GenericViewSet):
+    pass
+
+
+class RetrieveUpdateViewSet(mixins.RetrieveModelMixin,
+                            mixins.UpdateModelMixin,
+                            viewsets.GenericViewSet):
+    pass
+
+
+class RetrieveUpdateDeleteViewSet(mixins.RetrieveModelMixin,
+                                  mixins.UpdateModelMixin,
+                                  mixins.DestroyModelMixin,
+                                  viewsets.GenericViewSet):
+    pass
+
+
+@api_view(['POST'])
+def email_token_obtain_view(request):
+    user = get_object_or_404(User, email=request.data['email'])
+    if request.data['confirmation_code'] == user.password:
+        token = str(SlidingToken.for_user(user))
+        return Response({'token': token}, status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_403_FORBIDDEN)
+
+
+class EmailCodeSendView(APIView):
+
+    def post(self, request):
+        serializer = EmailCodeSendSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            user = get_object_or_404(User, email=request.data['email'])
+            send_mail('Confirmation', user.password, 'from@emperor.com', [user.email])
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated, IsAdminOrReadOnly | IsAdminUser]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', ]
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return User.objects.all()
+        return User.objects.filter(username=self.kwargs.get('username'))
+
+    @action(detail=False, methods=['get', 'patch'],
+            url_path='me', permission_classes=[IsAuthenticated])
+    def me(self, request):
+        user = get_object_or_404(User, id=request.user.id)
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -48,16 +115,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class ListCreateMixin(mixins.ListModelMixin,
-                      mixins.CreateModelMixin,
-                      viewsets.GenericViewSet):
-    pass
-
-
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['category', 'genre', 'year', 'name']
 
@@ -68,7 +129,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save()
@@ -77,7 +138,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save()

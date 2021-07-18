@@ -1,19 +1,21 @@
+from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 import datetime as dt
 
+User = get_user_model()
 
 
 class Review(models.Model):
-    text = models.CharField()
+    text = models.CharField(max_length=200)
     pub_date = models.DateTimeField(
         'Дата отзыва', auto_now_add=True)
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews')
-    title = models.ForeignKey(Title, on_delete=models.CASCADE,
+    title = models.ForeignKey('Title', on_delete=models.CASCADE,
                               related_name='reviews')
     score = models.IntegerField(default=10, validators=[MinValueValidator(0),
-                                MaxValueValidator(10)],)
+                                                        MaxValueValidator(10)], )
 
     def __str__(self):
         return self.text
@@ -21,12 +23,12 @@ class Review(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE,
-                               related_name='comments')
+                               related_name='comments', null=False, blank=False)
     review = models.ForeignKey(Review, on_delete=models.CASCADE,
                                related_name='comments')
-    text = models.CharField()
+    text = models.CharField(max_length=200)
     pub_date = models.DateTimeField(
-        'Дата комментария', auto_now_add=True,)
+        'Дата комментария', auto_now_add=True, )
 
     def __str__(self):
         return self.text
@@ -60,7 +62,7 @@ class Title(models.Model):
         verbose_name='Название произведения'
     )
     year = models.IntegerField(
-        default=lambda: dt.date.today().year,
+        default=dt.date.today().year,
         verbose_name='Категория',
         blank=True,
         null=True
@@ -71,13 +73,13 @@ class Title(models.Model):
         decimal_places=2,
         blank=True,
         null=True
-        )
+    )
     description = models.CharField(
         max_length=200,
         verbose_name='Описание',
         blank=True,
         null=True
-        )
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -86,7 +88,7 @@ class Title(models.Model):
         null=True,
         verbose_name='Категория',
         help_text='Тип произведения'
-        )
+    )
     genre = models.ForeignKey(
         Genre,
         on_delete=models.SET_NULL,
@@ -95,8 +97,7 @@ class Title(models.Model):
         null=True,
         verbose_name='Жанр',
         help_text='Жанр произведения'
-        )
+    )
 
     def __str__(self):
         return self.name
-
