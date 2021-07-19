@@ -1,10 +1,11 @@
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets, filters
+from rest_framework import status, viewsets, filters, mixins
 from rest_framework.decorators import api_view, action
 from rest_framework.permissions import (IsAdminUser,
                                         IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+                                        IsAuthenticatedOrReadOnly,
+                                        AllowAny)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
@@ -21,6 +22,13 @@ from .serializers import (
     GenreSerializer,
     CategorySerializer
 )
+
+
+class CreateListDeleteViewSet(mixins.CreateModelMixin,
+                              mixins.ListModelMixin,
+                              mixins.DestroyModelMixin,
+                              viewsets.GenericViewSet):
+    pass
 
 
 @api_view(['POST'])
@@ -56,7 +64,6 @@ class UserViewSet(viewsets.ModelViewSet):
             methods=['get'])
     def get_users(self):
         users = User.objects.all()
-        print('test')
         serializer = self.get_serializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -64,7 +71,7 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated],
             methods=['get', 'patch'],
             url_path='me', )
-    def update_self(self, request):
+    def me(self, request):
         user = User.objects.get(username=request.user)
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
@@ -126,10 +133,14 @@ class GenreViewSet(viewsets.ModelViewSet):
         serializer.save()
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CreateListDeleteViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_permissions(self):
+        if self.action == 'list':
+            return [AllowAny]
+        return [(IsAdminUser | IsAdminOrReadOnly)]
 
     def perform_create(self, serializer):
         serializer.save()
