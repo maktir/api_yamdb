@@ -5,7 +5,7 @@ from rest_framework import routers
 from .views import (CommentViewSet, ReviewViewSet,
                     GenreViewSet, CategoryViewSet,
                     TitleViewSet, EmailCodeSendView,
-                    UserViewSet, email_token_obtain_view)
+                    UserViewSet, email_token_obtain_view,)
 
 router_api = routers.DefaultRouter()
 router_api.register(r'users', UserViewSet, basename='users')
