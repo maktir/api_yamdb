@@ -17,7 +17,7 @@ class EmailCodeSendSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(
             email=validated_data['email'],
-            username=validated_data['username'],
+            username=validated_data.get('username'),
             password=create_confirmation_code()
         )
         user.save()

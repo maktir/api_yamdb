@@ -19,14 +19,14 @@ router_api.register(
     basename='titles'
 )
 router_api.register(
-    r'genre',
+    r'genres',
     GenreViewSet,
-    basename='follow'
+    basename='genre'
 )
 router_api.register(
-    r'category',
+    r'categories',
     CategoryViewSet,
-    basename='group'
+    basename='categories'
 )
 
 urlpatterns = [
