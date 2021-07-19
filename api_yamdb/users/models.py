@@ -28,7 +28,7 @@ class User(AbstractUser):
     )
     bio = models.CharField(max_length=150, blank=True)
     role = models.CharField(choices=ROLE_CHOICES,
-                            default=ROLE_CHOICES[0],
+                            default=ROLE_CHOICES[0][0],
                             max_length=30,
                             null=True,
                             blank=True)
@@ -36,5 +36,13 @@ class User(AbstractUser):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique_username_email'
+            )
+        ]

@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+
 from .generators import create_confirmation_code
 from .models import Comment, Review, Genre, Category, Title
 from users.models import User
@@ -13,19 +15,21 @@ class EmailCodeSendSerializer(serializers.ModelSerializer):
         fields = ('email', 'password',)
 
     def create(self, validated_data):
+        #username = validated_data['email'].split("@", 1)[0]
         user = User.objects.create_user(
             email=validated_data['email'],
-            username=validated_data['email'],
+            username=validated_data['username'],
             password=create_confirmation_code()
         )
-        #user.set_password(create_confirmation_code())
         user.save()
         return user
 
 
 class UserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
-    username = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True, validators=[
+        UniqueValidator(queryset=User.objects.all())])
+    username = serializers.CharField(required=True, validators=[
+        UniqueValidator(queryset=User.objects.all())])
 
     class Meta:
         model = User
