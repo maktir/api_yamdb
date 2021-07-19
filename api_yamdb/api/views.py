@@ -61,8 +61,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False,
-            permission_classes=[IsAuthenticated,
-                                (IsAdminOrReadOnly | IsAdminUser)],
+            permission_classes=[IsAuthenticated],
             methods=['get', 'patch'],
             url_path='me', )
     def update_self(self, request):
