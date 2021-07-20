@@ -39,11 +39,21 @@ class UserSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(slug_field='username',
                                           read_only=True)
+    score = serializers.IntegerField(min_value=1, max_value=10)
 
     class Meta:
         model = Review
         fields = '__all__'
         read_only_fields = ('title',)
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        title = attrs['title']
+        if Review.objects.filter(title=title, author=user).exists():
+            raise serializers.ValidationError(
+                "You've already done a review to this title."
+            )
+        return attrs
 
 
 class CommentSerializer(serializers.ModelSerializer):

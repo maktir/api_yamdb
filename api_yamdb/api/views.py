@@ -12,7 +12,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from users.models import User
 
 from .models import Review, Title, Genre, Category
-from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, ReviewPermissions
 from .serializers import (
     EmailCodeSendSerializer,
     UserSerializer,
@@ -72,7 +72,7 @@ class UserViewSet(viewsets.ModelViewSet):
             methods=['get', 'patch'],
             url_path='me', )
     def me(self, request):
-        user = User.objects.get(username=request.user)
+        user = User.objects.get(email=request.user.email)
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -82,15 +82,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,
-                          IsAdminUser)
+    permission_classes = [ReviewPermissions]
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        if self.action == 'list':
-            return title.reviews.all()
-        else:
-            return title.reviews.filter(pk=self.kwargs.get('review_id'))
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -137,10 +133,3 @@ class CategoryViewSet(CreateListDeleteViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-    def get_permissions(self):
-        if self.action == 'list':
-            return [AllowAny]
-        return [(IsAdminUser | IsAdminOrReadOnly)]
-
-    def perform_create(self, serializer):
-        serializer.save()

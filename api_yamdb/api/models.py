@@ -63,7 +63,7 @@ class Title(models.Model):
     )
     year = models.IntegerField(
         default=dt.date.today().year,
-        verbose_name='Категория',
+        verbose_name='Дата выхода',
         blank=True,
         null=True
     )
