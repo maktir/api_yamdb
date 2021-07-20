@@ -16,12 +16,6 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return request.user.role == 'admin'
 
 
-class IsAdminOrRO(permissions.BasePermission):
+class ReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
-        if request.user.is_superuser or request.method in permissions.SAFE_METHODS:
-            return True
-        else:
-            return request.user.is_superuser
-
-
-
+        return request.method in permissions.SAFE_METHODS

@@ -5,14 +5,18 @@ from rest_framework.decorators import api_view, action
 from rest_framework.permissions import (IsAdminUser,
                                         IsAuthenticated,
                                         IsAuthenticatedOrReadOnly,
-                                        AllowAny)
+                                        )
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from users.models import User
 
 from .models import Review, Title, Genre, Category
-from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsAdminOrRO
+from .permissions import (IsAdminOrReadOnly,
+                          IsAuthorOrReadOnly,
+                          ReadOnly
+                          )
+
 from .serializers import (
     EmailCodeSendSerializer,
     UserSerializer,
@@ -47,7 +51,8 @@ class EmailCodeSendView(APIView):
         if serializer.is_valid():
             serializer.save()
             user = get_object_or_404(User, email=request.data['email'])
-            send_mail('Confirmation', user.password, 'from@emperor.com', [user.email])
+            send_mail('Confirmation',
+                      user.password, 'from@emperor.com', [user.email])
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -116,7 +121,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [IsAdminOrRO]
+    permission_classes = [IsAdminUser | ReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['category', 'genre', 'year', 'name']
 
@@ -127,7 +132,10 @@ class TitleViewSet(viewsets.ModelViewSet):
 class GenreViewSet(CreateListDeleteViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrRO]
+    permission_classes = [IsAdminUser | ReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
+    lookup_field = 'slug'
 
     def perform_create(self, serializer):
         serializer.save()
@@ -136,9 +144,10 @@ class GenreViewSet(CreateListDeleteViewSet):
 class CategoryViewSet(CreateListDeleteViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrRO]
+    permission_classes = [IsAdminUser | ReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+    lookup_field = 'slug'
 
     def perform_create(self, serializer):
         serializer.save()
