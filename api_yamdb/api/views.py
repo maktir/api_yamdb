@@ -12,7 +12,11 @@ from rest_framework_simplejwt.tokens import AccessToken
 from users.models import User
 
 from .models import Review, Title, Genre, Category
-from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsAdminOrRO
+from .permissions import (IsAdminOrReadOnly,
+                          IsAuthorOrReadOnly,
+                          ReadOnly
+                          )
+
 from .serializers import (
     EmailCodeSendSerializer,
     UserSerializer,
@@ -116,7 +120,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [IsAdminOrRO]
+    permission_classes = [IsAdminUser | ReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['category', 'genre', 'year', 'name']
 
@@ -127,7 +131,9 @@ class TitleViewSet(viewsets.ModelViewSet):
 class GenreViewSet(CreateListDeleteViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrRO]
+    permission_classes = [IsAdminUser | ReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
 
     def perform_create(self, serializer):
         serializer.save()
@@ -136,9 +142,14 @@ class GenreViewSet(CreateListDeleteViewSet):
 class CategoryViewSet(CreateListDeleteViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrRO]
+    permission_classes = [IsAdminUser | ReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+
+    def destroy(self, request, *args, **kwargs):
+        category = get_object_or_404(Category, id=kwargs['slug_id'])
+        self.perform_destroy(category)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_create(self, serializer):
         serializer.save()
