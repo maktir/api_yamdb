@@ -29,3 +29,9 @@ class ReviewPermissions(permissions.BasePermission):
                     or request.user.role in ['admin', 'moderator']):
                 return True
             return False
+
+
+class ReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.method in permissions.SAFE_METHODS
+
