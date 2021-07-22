@@ -24,7 +24,7 @@ class User(AbstractUser):
             'unique': _("A user with that username already exists."),
         },
         blank=True,
-        null=True
+        null=True,
     )
     bio = models.CharField(max_length=150, blank=True)
     role = models.CharField(choices=ROLE_CHOICES,
@@ -36,7 +36,7 @@ class User(AbstractUser):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     class Meta:
@@ -46,3 +46,6 @@ class User(AbstractUser):
                 name='unique_username_email'
             )
         ]
+
+    def __str__(self):
+        return f'{self.username}'
