@@ -1,10 +1,10 @@
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, filters, mixins
 from rest_framework.decorators import api_view, action
-from rest_framework.permissions import (IsAdminUser,
+from rest_framework.permissions import (
                                         IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly,
                                         )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,11 +13,10 @@ from users.models import User
 
 from .models import Review, Title, Genre, Category
 
-from .permissions import (IsAdminOrReadOnly,
-                          IsAuthorOrReadOnly,
-                          ReadOnly,
-                            ReviewPermissions
-                          )
+from .permissions import (
+    ReadOnly,
+    ReviewCommentPermissions, TitlePermissions, AuthAdminPermissions
+)
 
 from .serializers import (
     EmailCodeSendSerializer,
@@ -60,14 +59,13 @@ class EmailCodeSendView(APIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, (IsAdminOrReadOnly | IsAdminUser)]
+    permission_classes = [AuthAdminPermissions]
     serializer_class = UserSerializer
     queryset = User.objects.all()
     lookup_field = 'username'
 
     @action(detail=False,
-            permission_classes=[IsAuthenticated,
-                                (IsAdminOrReadOnly | IsAdminUser)],
+            permission_classes=[AuthAdminPermissions],
             methods=['get'])
     def get_users(self):
         users = User.objects.all()
@@ -89,7 +87,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [ReviewPermissions]
+    permission_classes = [ReviewCommentPermissions]
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -102,14 +100,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
+    permission_classes = [ReviewCommentPermissions]
 
     def get_queryset(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        if self.action == 'list':
-            return review.comments.all()
-        else:
-            return review.comments.filter(pk=self.kwargs.get('comment_id'))
+        return review.comments.all()
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
@@ -119,33 +114,25 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [IsAdminUser | ReadOnly]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['category', 'genre', 'year', 'name']
-
-    def perform_create(self, serializer):
-        serializer.save()
+    permission_classes = [TitlePermissions]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category', 'genre', 'name', 'year')
 
 
 class GenreViewSet(CreateListDeleteViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminUser | ReadOnly]
+    permission_classes = [AuthAdminPermissions | ReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
     lookup_field = 'slug'
-
-    def perform_create(self, serializer):
-        serializer.save()
 
 
 class CategoryViewSet(CreateListDeleteViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminUser | ReadOnly]
+    permission_classes = [AuthAdminPermissions | ReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
     lookup_field = 'slug'
 
-    def perform_create(self, serializer):
-        serializer.save()
