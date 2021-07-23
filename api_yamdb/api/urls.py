@@ -11,8 +11,10 @@ router_api = routers.DefaultRouter()
 router_api.register(r'users', UserViewSet, basename='users')
 router_api.register(r'titles/(?P<title_id>\d+)/reviews',
                     ReviewViewSet, basename='reviews')
-router_api.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
-                    CommentViewSet, basename='comments')
+router_api.register(
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    CommentViewSet, basename='comments'
+)
 router_api.register(
     r'titles',
     TitleViewSet,

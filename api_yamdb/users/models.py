@@ -40,6 +40,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     class Meta:
+        ordering = ['-id']
         constraints = [
             models.UniqueConstraint(
                 fields=['username', 'email'],

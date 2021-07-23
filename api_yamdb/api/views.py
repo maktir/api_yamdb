@@ -1,3 +1,4 @@
+import django_filters
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -5,17 +6,19 @@ from rest_framework import status, viewsets, filters, mixins
 from rest_framework.decorators import api_view, action
 from rest_framework.permissions import (
                                         IsAuthenticated,
+                                        IsAdminUser
                                         )
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from users.models import User
-
+from django.db.models import Avg
+from rest_framework.pagination import PageNumberPagination
 from .models import Review, Title, Genre, Category
 
 from .permissions import (
     ReadOnly,
-    ReviewCommentPermissions, TitlePermissions, AuthAdminPermissions
+    ReviewCommentPermissions, AuthAdminPermissions
 )
 
 from .serializers import (
@@ -23,9 +26,10 @@ from .serializers import (
     UserSerializer,
     CommentSerializer,
     ReviewSerializer,
-    TitleSerializer,
     GenreSerializer,
-    CategorySerializer
+    CategorySerializer,
+    TitleReadSerializer,
+    TitleCreateSerializer
 )
 
 
@@ -111,12 +115,32 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
+class FilterSetTitle(django_filters.FilterSet):
+    name = django_filters.filters.CharFilter(field_name='name',
+                                             lookup_expr='contains')
+    category = django_filters.CharFilter(field_name='category__slug',
+                                         lookup_expr='exact')
+    genre = django_filters.CharFilter(field_name='genre__slug',
+                                      lookup_expr='exact')
+
+    class Meta:
+        fields = ['name', 'genre', 'category', 'year']
+        model = Title
+
+
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    permission_classes = [TitlePermissions]
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).order_by('name', 'year')
+    permission_classes = [IsAdminUser | ReadOnly]
+    pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category', 'genre', 'name', 'year')
+    filterset_class = FilterSetTitle
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleCreateSerializer
 
 
 class GenreViewSet(CreateListDeleteViewSet):
@@ -135,4 +159,3 @@ class CategoryViewSet(CreateListDeleteViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
     lookup_field = 'slug'
-
