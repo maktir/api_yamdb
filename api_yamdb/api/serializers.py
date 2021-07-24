@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from django.db.models import Avg
 from .generators import create_confirmation_code
 from .models import Comment, Review, Genre, Category, Title
 from users.models import User
@@ -46,8 +45,6 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    slug = serializers.CharField(required=False)
-    name = serializers.CharField(required=True)
 
     class Meta:
         model = Category
@@ -56,48 +53,28 @@ class CategorySerializer(serializers.ModelSerializer):
             'slug'
         )
 
-    def validate_slug(self, data):
 
-        if Category.objects.filter(slug=data).exists():
-            raise serializers.ValidationError(
-                'Category with this slug already exists.'
-            )
-        return data
-
-
-class TitleSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(required=True)
-    rating = serializers.SerializerMethodField()
-    genre = GenreSerializer(many=True, required=False)
-    category = CategorySerializer(required=False)
+class TitleReadSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(read_only=True, many=True)
+    category = CategorySerializer(read_only=True)
+    rating = serializers.FloatField()
 
     class Meta:
         model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'rating',
-            'description',
-            'category',
-            'genre'
-        )
+        fields = '__all__'
 
 
+class TitleCreateSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(), slug_field='slug', required=False
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(), slug_field='slug', many=True
+    )
 
-
-
-
-    # def create(self, validated_data):
-    #     genre_data = validated_data.pop('genre')
-    #     category_data = validated_data.pop('category')
-    #     category, created = Category.objects.get_or_create(**category_data)
-    #     genre, created = Genre.objects.get_or_create(**genre_data)
-    #     return Title.objects.create(category=category, genre=genre, **validated_data)
-
-
-    def get_rating(self, title):
-        return title.reviews.aggregate(rating=Avg('score'))['rating']
+    class Meta:
+        model = Title
+        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):

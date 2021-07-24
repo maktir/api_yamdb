@@ -1,8 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django_extensions.db.fields import AutoSlugField
-from django.utils.translation import ugettext_lazy as _
 import datetime as dt
 
 User = get_user_model()
@@ -19,6 +17,9 @@ class Genre(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+    class Meta:
+        ordering = ['name']
+
 
 class Category(models.Model):
     name = models.CharField(
@@ -26,10 +27,13 @@ class Category(models.Model):
         verbose_name='Название категории',
         unique=True,
     )
-    slug = models.SlugField(unique=True, default=name, null=True, blank=True)
+    slug = models.SlugField(unique=True, null=True, blank=True)
 
     def __str__(self):
         return f'{self.name}'
+
+    class Meta:
+        ordering = ['name']
 
 
 class Title(models.Model):
@@ -43,40 +47,25 @@ class Title(models.Model):
         blank=True,
         null=True
     )
-    rating = models.DecimalField(
-        verbose_name='Рейтинг',
-        max_digits=2,
-        decimal_places=2,
-        blank=True,
-        null=True
-    )
     description = models.CharField(
         max_length=200,
         verbose_name='Описание',
         blank=True,
         null=True
     )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.SET_NULL,
-        related_name='titles',
-        blank=True,
-        null=True,
-        verbose_name='Категория',
-        help_text='Тип произведения'
+    genre = models.ManyToManyField(
+        Genre, related_name='titles', blank=True, verbose_name='Жанр'
     )
-    genre = models.ForeignKey(
-        Genre,
-        on_delete=models.SET_NULL,
-        related_name='titles',
-        blank=True,
-        null=True,
-        verbose_name='Жанр',
-        help_text='Жанр произведения'
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, related_name='titles',
+        blank=True, null=True, verbose_name='Категория'
     )
 
     def __str__(self):
         return f'{self.name}'
+
+    class Meta:
+        ordering = ['name']
 
 
 class Review(models.Model):
@@ -88,15 +77,20 @@ class Review(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE,
                               related_name='reviews')
     score = models.IntegerField(default=10, validators=[MinValueValidator(0),
-                                                        MaxValueValidator(10)], )
+                                                        MaxValueValidator(10)],
+                                )
 
     def __str__(self):
         return f'{self.text}'
 
+    class Meta:
+        ordering = ['-pub_date']
+
 
 class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE,
-                               related_name='comments', null=False, blank=False)
+                               related_name='comments',
+                               null=False, blank=False)
     review = models.ForeignKey(Review, on_delete=models.CASCADE,
                                related_name='comments')
     text = models.CharField(max_length=200)
@@ -105,3 +99,6 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'{self.text}'
+
+    class Meta:
+        ordering = ['-pub_date']
