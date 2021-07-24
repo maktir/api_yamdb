@@ -1,4 +1,3 @@
-import django_filters
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,6 +11,8 @@ from rest_framework_simplejwt.tokens import AccessToken
 from users.models import User
 from django.db.models import Avg
 from rest_framework.pagination import PageNumberPagination
+
+from .filters import FilterSetTitle
 from .models import Review, Title, Genre, Category
 
 from .permissions import (
@@ -111,19 +112,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         serializer.save(author=self.request.user, review=review)
-
-
-class FilterSetTitle(django_filters.FilterSet):
-    name = django_filters.filters.CharFilter(field_name='name',
-                                             lookup_expr='contains')
-    category = django_filters.CharFilter(field_name='category__slug',
-                                         lookup_expr='exact')
-    genre = django_filters.CharFilter(field_name='genre__slug',
-                                      lookup_expr='exact')
-
-    class Meta:
-        fields = ['name', 'genre', 'category', 'year']
-        model = Title
 
 
 class TitleViewSet(viewsets.ModelViewSet):
