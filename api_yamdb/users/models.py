@@ -5,10 +5,9 @@ from django.utils.translation import ugettext_lazy as _
 from .managers import CustomUserManager
 
 ROLE_CHOICES = (
-        ('user', 'user',),
-        ('moderator', 'moderator',),
-        ('admin', 'admin',),
-    )
+    ('user', 'user',),
+    ('moderator', 'moderator',),
+    ('admin', 'admin',),)
 
 
 class User(AbstractUser):
@@ -18,7 +17,8 @@ class User(AbstractUser):
         _('username'),
         max_length=150,
         unique=True,
-        help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
+        help_text=_('Required. 150 characters or fewer.'
+                    'Letters, digits and @/./+/-/_ only.'),
         validators=[UnicodeUsernameValidator()],
         error_messages={
             'unique': _("A user with that username already exists."),

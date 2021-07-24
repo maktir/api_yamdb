@@ -45,7 +45,6 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
         fields = (
@@ -78,13 +77,11 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(
-                                          read_only=True)
+    author = serializers.StringRelatedField(read_only=True)
     score = serializers.IntegerField(min_value=1, max_value=10)
-    title = serializers.PrimaryKeyRelatedField(
-                                         queryset=Title.objects.all(),
-                                         required=False,
-                                         write_only=True)
+    title = serializers.PrimaryKeyRelatedField(queryset=Title.objects.all(),
+                                               required=False,
+                                               write_only=True)
 
     class Meta:
         model = Review

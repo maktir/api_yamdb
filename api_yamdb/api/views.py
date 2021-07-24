@@ -4,10 +4,8 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, filters, mixins
 from rest_framework.decorators import api_view, action
-from rest_framework.permissions import (
-                                        IsAuthenticated,
-                                        IsAdminUser
-                                        )
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAdminUser)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
