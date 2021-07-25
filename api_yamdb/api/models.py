@@ -5,6 +5,8 @@ import datetime as dt
 
 User = get_user_model()
 
+VALIDATORS = [MinValueValidator(0), MaxValueValidator(10, 'Max value is 10!')]
+
 
 class Genre(models.Model):
     name = models.CharField(
@@ -14,11 +16,11 @@ class Genre(models.Model):
     )
     slug = models.SlugField(unique=True, null=True, blank=True)
 
-    def __str__(self):
-        return f'{self.name}'
-
     class Meta:
         ordering = ['name']
+
+    def __str__(self):
+        return f'{self.name}'
 
 
 class Category(models.Model):
@@ -29,11 +31,11 @@ class Category(models.Model):
     )
     slug = models.SlugField(unique=True, null=True, blank=True)
 
-    def __str__(self):
-        return f'{self.name}'
-
     class Meta:
         ordering = ['name']
+
+    def __str__(self):
+        return f'{self.name}'
 
 
 class Title(models.Model):
@@ -41,11 +43,12 @@ class Title(models.Model):
         max_length=200,
         verbose_name='Название произведения'
     )
-    year = models.IntegerField(
+    year = models.PositiveSmallIntegerField(
         default=dt.date.today().year,
         verbose_name='Дата выхода',
         blank=True,
-        null=True
+        null=True,
+        db_index=True
     )
     description = models.CharField(
         max_length=200,
@@ -76,9 +79,8 @@ class Review(models.Model):
         User, on_delete=models.CASCADE, related_name='reviews')
     title = models.ForeignKey(Title, on_delete=models.CASCADE,
                               related_name='reviews')
-    score = models.IntegerField(default=10, validators=[MinValueValidator(0),
-                                                        MaxValueValidator(10)],
-                                )
+    score = models.PositiveSmallIntegerField(default=10,
+                                             validators=VALIDATORS,)
 
     def __str__(self):
         return f'{self.text}'

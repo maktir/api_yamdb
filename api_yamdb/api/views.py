@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -56,7 +57,7 @@ class EmailCodeSendView(APIView):
             serializer.save()
             user = get_object_or_404(User, email=request.data['email'])
             send_mail('Confirmation',
-                      user.password, 'from@emperor.com', [user.email])
+                      user.password, settings.EMAIL_HOST_USER, [user.email])
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -110,7 +111,9 @@ class CommentViewSet(viewsets.ModelViewSet):
         return review.comments.all()
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'),
+                                   title=title)
         serializer.save(author=self.request.user, review=review)
 
 

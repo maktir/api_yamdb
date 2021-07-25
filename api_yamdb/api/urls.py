@@ -31,8 +31,12 @@ router_api.register(
     basename='categories'
 )
 
+auth_urls = [
+    path('email/', EmailCodeSendView.as_view()),
+    path('token/', email_token_obtain_view)
+]
+
 urlpatterns = [
     path('v1/', include(router_api.urls)),
-    path('v1/auth/email/', EmailCodeSendView.as_view(), name='email_code'),
-    path('v1/auth/token/', email_token_obtain_view, name='get_token'),
+    path('v1/auth/', include(auth_urls)),
 ]
