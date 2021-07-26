@@ -14,7 +14,11 @@ class Genre(models.Model):
         verbose_name='Название жанра',
         unique=True,
     )
-    slug = models.SlugField(unique=True, null=True, blank=True)
+    slug = models.SlugField(
+        verbose_name='жанр',
+        unique=True,
+        null=True,
+        blank=True)
 
     class Meta:
         ordering = ['name']
@@ -29,7 +33,11 @@ class Category(models.Model):
         verbose_name='Название категории',
         unique=True,
     )
-    slug = models.SlugField(unique=True, null=True, blank=True)
+    slug = models.SlugField(
+        verbose_name='категория',
+        unique=True,
+        null=True,
+        blank=True)
 
     class Meta:
         ordering = ['name']
