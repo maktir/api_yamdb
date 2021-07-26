@@ -13,7 +13,7 @@ class Genre(models.Model):
         unique=True,
     )
     slug = models.SlugField(
-        verbose_name='жанр',
+        verbose_name='Жанр',
         unique=True,
         null=True,
         blank=True)
@@ -32,7 +32,7 @@ class Category(models.Model):
         unique=True,
     )
     slug = models.SlugField(
-        verbose_name='категория',
+        verbose_name='Категория',
         unique=True,
         null=True,
         blank=True)
@@ -86,11 +86,10 @@ class Review(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE,
                               related_name='reviews')
     score = models.PositiveSmallIntegerField(default=10,
-                                             validators=[MinValueValidator
-                                                         (1, 'Min value is 1'),
-                                                         MaxValueValidator
-                                                         (10, 'Max value is 10'
-                                                          )],)
+                                             validators=[MinValueValidator(
+                                                 1, 'Min value is 1'),
+                                                 MaxValueValidator(
+                                                     10, 'Max value is 10')],)
 
     def __str__(self):
         return f'{self.text}'
