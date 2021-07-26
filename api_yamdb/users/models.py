@@ -13,6 +13,7 @@ class UserRole:
 
 
 class User(AbstractUser):
+
     email = models.EmailField(_('email address'), unique=True)
     bio = models.CharField(max_length=150, blank=True)
     role = models.CharField(choices=UserRole.ROLE_CHOICES,
@@ -20,7 +21,9 @@ class User(AbstractUser):
                             max_length=30,
                             null=True,
                             blank=True)
-    password = models.CharField(_('confirmation_code'), max_length=250, editable=False)
+    password = models.CharField(_('confirmation_code'),
+                                max_length=250,
+                                editable=False)
 
     @property
     def is_admin(self):

@@ -5,8 +5,6 @@ import datetime as dt
 
 User = get_user_model()
 
-VALIDATORS = [MinValueValidator(0), MaxValueValidator(10, 'Max value is 10!')]
-
 
 class Genre(models.Model):
     name = models.CharField(
@@ -14,7 +12,11 @@ class Genre(models.Model):
         verbose_name='Название жанра',
         unique=True,
     )
-    slug = models.SlugField(unique=True, null=True, blank=True)
+    slug = models.SlugField(
+        verbose_name='Жанр',
+        unique=True,
+        null=True,
+        blank=True)
 
     class Meta:
         ordering = ['name']
@@ -29,7 +31,11 @@ class Category(models.Model):
         verbose_name='Название категории',
         unique=True,
     )
-    slug = models.SlugField(unique=True, null=True, blank=True)
+    slug = models.SlugField(
+        verbose_name='Категория',
+        unique=True,
+        null=True,
+        blank=True)
 
     class Meta:
         ordering = ['name']
