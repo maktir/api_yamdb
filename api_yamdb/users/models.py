@@ -4,13 +4,15 @@ from django.utils.translation import ugettext_lazy as _
 
 from .managers import CustomUserManager
 
-ROLE_CHOICES = (
-    ('user', 'user',),
-    ('moderator', 'moderator',),
-    ('admin', 'admin',),)
-
 
 class User(AbstractUser):
+
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
+    ROLE_CHOICES = [(USER, 'user'),
+                    (MODERATOR, 'moderator'),
+                    (ADMIN, 'admin'), ]
 
     email = models.EmailField(_('email address'), unique=True)
     username = models.CharField(
