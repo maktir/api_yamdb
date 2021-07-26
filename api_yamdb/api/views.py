@@ -91,7 +91,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+<<<<<<< HEAD
     permission_classes = [ReviewCommentPermissions]
+=======
+    permission_classes = [IsAuthenticatedOrReadOnly|IsAuthorOrReadOnly|
+                          IsAdminUser]
+>>>>>>> ca1a5b0bb579355dffe517779e71cb4968e4e49c
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -104,7 +109,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+<<<<<<< HEAD
     permission_classes = [ReviewCommentPermissions]
+=======
+    permission_classes = [IsAuthenticatedOrReadOnly|IsAuthorOrReadOnly]
+>>>>>>> ca1a5b0bb579355dffe517779e71cb4968e4e49c
 
     def get_queryset(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
