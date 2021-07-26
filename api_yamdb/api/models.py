@@ -5,8 +5,6 @@ import datetime as dt
 
 User = get_user_model()
 
-VALIDATORS = [MinValueValidator(0), MaxValueValidator(10, 'Max value is 10!')]
-
 
 class Genre(models.Model):
     name = models.CharField(
@@ -80,7 +78,11 @@ class Review(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE,
                               related_name='reviews')
     score = models.PositiveSmallIntegerField(default=10,
-                                             validators=VALIDATORS,)
+                                             validators=[MinValueValidator
+                                                         (1, 'Min value is 1'),
+                                                         MaxValueValidator
+                                                         (10, 'Max value is 10'
+                                                          )],)
 
     def __str__(self):
         return f'{self.text}'

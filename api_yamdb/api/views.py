@@ -113,6 +113,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'),
+                                   title_id=self.kwargs.get('title_id'),
                                    title=title)
         serializer.save(author=self.request.user, review=review)
 
@@ -148,3 +149,4 @@ class CategoryViewSet(CreateListDeleteViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
     lookup_field = 'slug'
+
