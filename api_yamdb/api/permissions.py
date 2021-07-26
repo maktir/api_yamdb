@@ -12,14 +12,12 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
 class AuthAdminPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         if (request.user.is_authenticated
-                and (request.user.role == 'admin'
-                     or request.user.is_staff)):
+                and request.user.is_admin):
             return True
         return False
 
     def has_object_permission(self, request, view, obj):
-        if (request.user.role == 'admin'
-                or request.user.is_staff):
+        if request.user.is_admin:
             return True
         return False
 
@@ -30,8 +28,7 @@ class TitlePermissions(permissions.BasePermission):
             return True
         if view.action == 'create':
             if (request.user.is_authenticated
-                    and (request.user.role == 'admin'
-                         or request.user.is_staff)):
+                    and request.user.is_admin):
                 return True
             return False
 
@@ -39,8 +36,7 @@ class TitlePermissions(permissions.BasePermission):
         if view.action == 'retrieve':
             return True
         if view.action in ['partial_update', 'destroy']:
-            if (request.user.role == 'admin'
-                    or request.user.is_staff):
+            if request.user.is_admin:
                 return True
             return False
 
@@ -56,8 +52,8 @@ class ReviewCommentPermissions(permissions.BasePermission):
             return True
         if view.action in ['partial_update', 'destroy']:
             if (request.user == obj.author
-                    or request.user.role in ['admin', 'moderator']
-                    or request.user.is_staff):
+                    or request.user.is_admin
+                    or request.user.is_moderator):
                 return True
             return False
 

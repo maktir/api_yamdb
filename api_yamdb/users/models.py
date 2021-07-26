@@ -1,43 +1,36 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, UnicodeUsernameValidator
+from django.contrib.auth.models import AbstractUser
 from django.utils.translation import ugettext_lazy as _
 
-from .managers import CustomUserManager
 
-ROLE_CHOICES = (
-    ('user', 'user',),
-    ('moderator', 'moderator',),
-    ('admin', 'admin',),)
+class UserRole:
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
+    ROLE_CHOICES = [(USER, 'user'),
+                    (MODERATOR, 'moderator'),
+                    (ADMIN, 'admin'), ]
 
 
 class User(AbstractUser):
-
     email = models.EmailField(_('email address'), unique=True)
-    username = models.CharField(
-        _('username'),
-        max_length=150,
-        unique=True,
-        help_text=_('Required. 150 characters or fewer.'
-                    'Letters, digits and @/./+/-/_ only.'),
-        validators=[UnicodeUsernameValidator()],
-        error_messages={
-            'unique': _("A user with that username already exists."),
-        },
-        blank=True,
-        null=True,
-    )
     bio = models.CharField(max_length=150, blank=True)
-    role = models.CharField(choices=ROLE_CHOICES,
-                            default=ROLE_CHOICES[0][0],
+    role = models.CharField(choices=UserRole.ROLE_CHOICES,
+                            default=UserRole.ROLE_CHOICES[0][0],
                             max_length=30,
                             null=True,
                             blank=True)
-    password = models.CharField(_('confirmation_code'), max_length=250)
+    password = models.CharField(_('confirmation_code'), max_length=250, editable=False)
 
-    objects = CustomUserManager()
+    @property
+    def is_admin(self):
+        if self.role == UserRole.ROLE_CHOICES[2][0] or self.is_staff:
+            return True
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    @property
+    def is_moderator(self):
+        if self.role == UserRole.ROLE_CHOICES[1][0]:
+            return True
 
     class Meta:
         ordering = ['-id']
