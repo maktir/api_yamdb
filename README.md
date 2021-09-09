@@ -9,4 +9,4 @@ $cd yatube_api/
 $python manage.py migrate
 )
 6. Run server ($python manage.py runserver)
-## Read the docs http://127.0.0.1:8000/redoc and have fun!
+## Read the docs at http://127.0.0.1:8000/redoc and have fun!
